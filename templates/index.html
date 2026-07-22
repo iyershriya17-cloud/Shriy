@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroForge AI - Spacecraft Architecture & Flight Telemetry</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        space: {
+                            950: '#02050e',
+                            900: '#030712',
+                            850: '#070d1e',
+                            800: '#0B0F19',
+                            700: '#111827',
+                            600: '#1F2937',
+                        },
+                        cyan: {
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            900: '#164e63',
+                            950: '#083344',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow-pulse': 'glow 3s infinite ease-in-out',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        glow: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.8' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #02050e;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.16) 0%, transparent 60%),
+                radial-gradient(circle at 85% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .space-grid-bg {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        .glass-panel {
+            background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel-glow {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.22);
+        }
+
+        .hud-card {
+            background: rgba(3, 7, 18, 0.65);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .hud-card:hover {
+            border-color: rgba(34, 211, 238, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Custom Range Input Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #0f172a;
+            border-radius: 4px;
+            border: 1px solid #1e293b;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #22d3ee;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+            transition: transform 0.1s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black relative overflow-x-hidden space-grid-bg">
+
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 sm:px-6 lg:px-10 py-3.5 shadow-lg">
+        <div class="max-w-[1800px] mx-auto flex items-center justify-between">
+            
+            <a href="#" onclick="ToggleLandingView(true); return false;" class="flex items-center gap-4 group">
+                <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/50 text-cyan-400 font-bold font-mono shadow-lg shadow-cyan-500/10 group-hover:border-cyan-400 transition">
+                    <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-display text-lg sm:text-xl font-bold tracking-wider text-white flex items-center gap-2.5">
+                        ASTROFORGE <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-mono font-semibold tracking-normal">v3.8 HUD</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono tracking-wide">Spacecraft Architecture & Telemetry Control Center</p>
+                </div>
+            </a>
+
+            <div class="hidden xl:flex items-center gap-6 font-mono text-xs">
+                <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-slate-400">GROQ AI CORE:</span>
+                    <span class="text-emerald-400 font-bold">ONLINE</span>
+                </div>
+                <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+                    </span>
+                    <span class="text-slate-400">NASA DONKI RADAR:</span>
+                    <span class="text-cyan-400 font-bold">SYNCED</span>
+                </div>
+            </div>
+
+            <div id="authStatusContainer" class="flex items-center gap-3">
+                <button id="openAuthModalBtn" onclick="OpenAuthModal()" class="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-semibold tracking-wider uppercase transition shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    AUTHENTICATE COMMANDER
+                </button>
+
+                <div id="loggedInUserBadge" class="hidden flex items-center gap-3">
+                    <button onclick="ToggleLandingView(false)" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-mono text-xs transition">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
+                        </svg>
+                        HUD TELEMETRY
+                    </button>
+                    <div class="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30">
+                        <div id="userAvatar" class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold uppercase shadow">
+                            U
+                        </div>
+                        <div class="text-left">
+                            <p id="userEmailText" class="text-xs font-mono text-cyan-300 font-semibold truncate max-w-[150px]">commander@astroforge.io</p>
+                            <p class="text-[10px] font-mono text-slate-400 tracking-wide">FLIGHT DIRECTOR</p>
+                        </div>
+                    </div>
+                    <button onclick="SignOutUser()" class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 transition" title="Disconnect Session">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="landingPageSection" class="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-10 flex-1 flex flex-col justify-center animate-fade-in">
+        
+        <div class="text-center max-w-4xl mx-auto space-y-6 mb-12">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs font-semibold tracking-wide">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                NEXT-GEN SPACECRAFT ARCHITECTURE PLATFORM
+            </div>
+            
+            <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                AI-Driven Mission Architecture & <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">Spaceflight Telemetry</span>
+            </h1>
+            
+            <p class="text-slate-300 text-sm sm:text-base lg:text-lg font-sans max-w-2xl mx-auto leading-relaxed">
+                AstroForge AI unifies deep space budget allocation, propulsion physics, live NASA heliospheric radar data, and high-speed LLM telemetry diagnostics for aerospace engineering teams.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                <button onclick="OpenAuthModal()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold font-mono text-xs sm:text-sm tracking-wider uppercase transition shadow-xl shadow-cyan-500/25 flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    AUTHENTICATE & LAUNCH CONTROL
+                </button>
+                <button onclick="EnterDemoMode()" class="px-6 py-3.5 rounded-xl glass-panel hover:bg-slate-800/80 text-slate-300 hover:text-white font-mono text-xs sm:text-sm font-semibold tracking-wider transition border border-slate-700/80 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    DEMO MISSION HUD
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
+            
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    01
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">AI Mission Readiness Diagnostics</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Groq-powered neural engine evaluates mass constraints, capital distribution, and orbit trajectories to generate real-time Go/No-Go status ratings.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    02
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">Subsystem Capital Allocation</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Dynamically weight parameters across propulsion engines, radiation shielding, and science avionics payload to optimize mission margins.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    03
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">NASA Heliospheric Radar Integration</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Live DONKI space weather stream tracking active M/X-class solar flares, coronal mass ejections, and deep space particle radiation fluxes.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    04
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">AI Copilot Engineering Drawer</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Interactive copilot assistant providing instantaneous advice on thermal protection systems, trajectory correction burns, and risk mitigations.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    05
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">Structural Risk Breakdown</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Detailed post-simulation failure mode logging, identifying hull integrity vulnerabilities, mass reserve warnings, and delta-v deficits.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl hover:border-cyan-500/40 transition duration-300">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4 font-mono font-bold">
+                    06
+                </div>
+                <h3 class="font-display text-lg font-bold text-white mb-2">Actionable Flight Directives</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-sans">
+                    Clear, ordered engineering directives specifying exact percentage reallocations required to achieve flight certification.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="glass-panel-glow p-8 rounded-3xl max-w-4xl mx-auto border border-cyan-500/30 text-center space-y-6">
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-white uppercase tracking-wider">Three Steps to Spaceflight Certification</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs text-slate-300">
+                <div class="space-y-2 p-4 rounded-xl bg-space-950/60 border border-slate-800">
+                    <span class="text-cyan-400 font-bold text-sm block">01. CONFIGURE TARGET</span>
+                    <p class="text-slate-400 text-[11px]">Select destination (Mars Orbit, Lunar Shackleton, Europa) & allocate budget.</p>
+                </div>
+                <div class="space-y-2 p-4 rounded-xl bg-space-950/60 border border-slate-800">
+                    <span class="text-cyan-400 font-bold text-sm block">02. RUN SIMULATION</span>
+                    <p class="text-slate-400 text-[11px]">Synthesize engine metrics with active NASA solar flare radiation logs.</p>
+                </div>
+                <div class="space-y-2 p-4 rounded-xl bg-space-950/60 border border-slate-800">
+                    <span class="text-cyan-400 font-bold text-sm block">03. EXECUTE DIRECTIVES</span>
+                    <p class="text-slate-400 text-[11px]">Review readiness score, failure analysis, and recommendations.</p>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <main id="dashboardSection" class="hidden max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+        
+        <section class="lg:col-span-5 xl:col-span-4 space-y-6 flex flex-col">
+            
+            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden flex-1 shadow-xl">
+                <div class="absolute -top-16 -right-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <h2 class="font-display text-base font-bold text-white tracking-wider flex items-center gap-2.5">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                        </svg>
+                        SUBSYSTEM ALLOCATION
+                    </h2>
+                    <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 border border-cyan-500/30 px-2.5 py-1 rounded-md font-semibold tracking-wider">HUD ACTIVE</span>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-xs font-mono text-slate-400 mb-2 uppercase tracking-wider">Mission Target Destination</label>
+                    <select id="destSelect" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-200 font-mono text-xs sm:text-sm focus:outline-none focus:border-cyan-500 transition shadow-inner">
+                        <option value="Mars Orbit">Mars Orbit (Trans-Mars Injection)</option>
+                        <option value="Lunar Base Alpha">Lunar Base Alpha (Shackleton Crater)</option>
+                        <option value="Europa Sub-surface">Europa Deep Ice Probe (Jupiter System)</option>
+                        <option value="Asteroid Belt Mining">Psyche 16 Asteroid Mining Station</option>
+                    </select>
+                </div>
+
+                <div class="mb-5 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                    <div class="flex justify-between items-center mb-2 font-mono text-xs">
+                        <span class="text-slate-400 uppercase tracking-wider">Total Mission Budget ($M)</span>
+                        <span id="budgetValue" class="text-cyan-400 font-bold bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-500/30">$1500 Million</span>
+                    </div>
+                    <input type="range" id="budgetSlider" min="500" max="5000" step="50" value="1500" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                </div>
+
+                <div class="mb-5 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                    <div class="flex justify-between items-center mb-2 font-mono text-xs">
+                        <span class="text-slate-400 uppercase tracking-wider">Propulsion Engine Priority</span>
+                        <span id="propulsionValue" class="text-slate-200 font-bold bg-slate-800 px-2 py-0.5 rounded">40%</span>
+                    </div>
+                    <input type="range" id="propulsionSlider" min="10" max="70" step="5" value="40" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                </div>
+
+                <div class="mb-5 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                    <div class="flex justify-between items-center mb-2 font-mono text-xs">
+                        <span class="text-slate-400 uppercase tracking-wider">Radiation Shielding & Structure</span>
+                        <span id="materialsValue" class="text-slate-200 font-bold bg-slate-800 px-2 py-0.5 rounded">30%</span>
+                    </div>
+                    <input type="range" id="materialsSlider" min="10" max="70" step="5" value="30" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                </div>
+
+                <div class="mb-6 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                    <div class="flex justify-between items-center mb-2 font-mono text-xs">
+                        <span class="text-slate-400 uppercase tracking-wider">Avionics & Science Payload</span>
+                        <span id="payloadValue" class="text-slate-200 font-bold bg-slate-800 px-2 py-0.5 rounded">30%</span>
+                    </div>
+                    <input type="range" id="payloadSlider" min="10" max="70" step="5" value="30" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                </div>
+
+                <button id="runSimBtn" onclick="ExecuteSimulation()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold font-mono text-xs sm:text-sm tracking-wider uppercase transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2.5 active:scale-[0.99]">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    EXECUTE TELEMETRY SIMULATION
+                </button>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                    <h3 class="font-mono text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
+                        </svg>
+                        NASA Space Weather Intelligence
+                    </h3>
+                    <button onclick="FetchSpaceWeather()" class="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh Radar
+                    </button>
+                </div>
+
+                <div id="weatherFeed" class="space-y-3 font-mono text-xs">
+                    <div class="flex items-center justify-center p-6 text-slate-400 animate-pulse">
+                        <span>Fetching active telemetry from NASA DONKI APIs...</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="lg:col-span-7 xl:col-span-8 flex flex-col space-y-6">
+            
+            <div id="simulationOutputCard" class="glass-panel rounded-2xl p-6 sm:p-8 flex-1 flex flex-col justify-between border-cyan-500/20 shadow-2xl">
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-slate-800">
+                        <div>
+                            <h2 class="font-display text-xl font-extrabold text-white tracking-wide">FLIGHT READINESS DIAGNOSTIC</h2>
+                            <p class="text-xs font-mono text-slate-400 mt-0.5">Groq AI Deep Telemetry Analytics Engine</p>
+                        </div>
+                        <div id="launchStatusBadge" class="self-start sm:self-auto px-5 py-2 rounded-full font-mono text-xs font-extrabold tracking-widest uppercase bg-slate-800 text-slate-400 border border-slate-700 shadow-md">
+                            STANDBY
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                        <div class="p-5 rounded-2xl hud-card text-center relative overflow-hidden">
+                            <div class="absolute inset-0 bg-cyan-500/5"></div>
+                            <p class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-2">Readiness Score</p>
+                            <p id="readinessScore" class="font-mono text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">--%</p>
+                        </div>
+                        <div class="p-5 rounded-2xl hud-card text-center">
+                            <p class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-2">Propulsion Capital</p>
+                            <p id="allocPropulsion" class="font-mono text-2xl font-bold text-slate-100">$0M</p>
+                        </div>
+                        <div class="p-5 rounded-2xl hud-card text-center">
+                            <p class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-2">Shielding Capital</p>
+                            <p id="allocMaterials" class="font-mono text-2xl font-bold text-slate-100">$0M</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4 class="text-xs font-mono uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Mission Analysis & Structural Risk Log
+                        </h4>
+                        <div id="postMortemLog" class="p-5 rounded-2xl bg-space-950 border border-slate-800 font-mono text-xs sm:text-sm text-slate-300 leading-relaxed min-h-[140px] max-h-[240px] overflow-y-auto shadow-inner">
+                            Execute a telemetry simulation to generate flight diagnostics, risk breakdown, and structural safety analysis.
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-mono uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Recommended Directives & Optimizations
+                        </h4>
+                        <ul id="recommendedActionsList" class="space-y-2.5 font-mono text-xs text-slate-300">
+                            <li class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-500">
+                                <span class="w-2 h-2 rounded-full bg-slate-600"></span>
+                                Awaiting mission parameter configuration...
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <button id="toggleCopilotBtn" onclick="ToggleCopilotDrawer()" class="fixed bottom-6 right-6 z-40 p-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold shadow-2xl shadow-cyan-500/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-3 border border-cyan-300/40">
+        <div class="relative">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+            </svg>
+            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-200 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-300"></span>
+            </span>
+        </div>
+        <span class="font-mono text-xs font-extrabold uppercase tracking-wider hidden sm:inline">AI Copilot</span>
+    </button>
+
+    <aside id="copilotDrawer" class="fixed inset-y-0 right-0 w-full sm:w-[480px] z-50 glass-panel-glow border-l border-cyan-500/30 bg-space-950/95 backdrop-blur-2xl flex flex-col shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out">
+        
+        <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-display text-sm font-bold text-white tracking-wider">ASTROFORGE COPILOT</h3>
+                    <p class="text-[10px] font-mono text-cyan-400 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        GROQ REAL-TIME ASSISTANT
+                    </p>
+                </div>
+            </div>
+            <button onclick="ToggleCopilotDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition" title="Close Panel">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="copilotChatBox" class="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 font-mono text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-cyan-500/20 text-cyan-300 leading-relaxed shadow-sm">
+                [SYSTEM]: AstroForge Mission Control Copilot online. Ask any questions regarding parameter optimization, telemetry risks, or space weather mitigations.
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-900/40">
+            <form id="copilotForm" onsubmit="HandleCopilotMessage(event)" class="space-y-2">
+                <div class="flex gap-2">
+                    <input type="text" id="copilotInput" placeholder="Ask Copilot (e.g. 'How to withstand solar flares?')" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 transition">
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-xs uppercase tracking-wider transition shadow-lg shadow-cyan-500/20 flex items-center gap-1.5">
+                        <span>SEND</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel-glow rounded-2xl w-full max-w-md p-6 relative shadow-2xl border border-cyan-500/30">
+            
+            <button onclick="CloseAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800/60 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <h3 class="font-display text-xl font-bold text-white">COMMANDER AUTHENTICATION</h3>
+                <p class="text-xs font-mono text-slate-400 mt-1">Access AstroForge Spacecraft Telemetry HUD</p>
+            </div>
+
+            <div class="flex border-b border-slate-800 mb-6 font-mono text-xs">
+                <button id="tabSignInBtn" onclick="SwitchAuthTab('signin')" class="flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold transition">
+                    SIGN IN
+                </button>
+                <button id="tabSignUpBtn" onclick="SwitchAuthTab('signup')" class="flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">
+                    CREATE ACCOUNT
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <button onclick="SignInWithGoogle()" class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-semibold text-xs font-mono flex items-center justify-center gap-3 transition shadow">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    Continue with Google Cloud SSO
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-[10px] font-mono text-slate-500 uppercase">Or via Supabase Auth</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <form id="supabaseAuthForm" onsubmit="HandleSupabaseAuth(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Email Identifier</label>
+                        <input type="email" id="authEmailInput" required placeholder="commander@astroforge.io" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Security Password</label>
+                        <input type="password" id="authPasswordInput" required placeholder="••••••••••••" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500 transition">
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-xs uppercase tracking-wider transition">
+                        SIGN IN TO MISSION HUD
+                    </button>
+                </form>
+
+                <div id="authFeedbackMsg" class="hidden text-center text-xs font-mono p-2.5 rounded-xl"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="glass-panel border-t border-slate-800/80 py-4 px-6 text-center font-mono text-xs text-slate-500 mt-6">
+        <p>AstroForge AI Terminal &copy; 2026 | Powered by Groq AI Engine, NASA Open APIs, Google Cloud & Supabase Security</p>
+    </footer>
+
+    <script>
+        // CLIENT STATE VARIABLES
+        let currentAuthMode = 'signin';
+        let supabaseClient = null;
+        let currentUser = null;
+        let currentGlobalWeatherSummary = "Nominal space environment.";
+        let copilotDrawerOpen = false;
+
+        // Initialize Application & Load Environment Configurations
+        document.addEventListener('DOMContentLoaded', async () => {
+            InitSliders();
+            await InitAppConfig();
+            await FetchSpaceWeather();
+            ExecuteSimulation();
+        });
+
+        // Toggle Landing vs Dashboard Views
+        function ToggleLandingView(showLanding) {
+            const landing = document.getElementById('landingPageSection');
+            const dashboard = document.getElementById('dashboardSection');
+            
+            if (showLanding) {
+                landing.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            } else {
+                landing.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+            }
+        }
+
+        function EnterDemoMode() {
+            ToggleLandingView(false);
+        }
+
+        // Initialize Sliders Sync
+        function InitSliders() {
+            const bSlider = document.getElementById('budgetSlider');
+            const pSlider = document.getElementById('propulsionSlider');
+            const mSlider = document.getElementById('materialsSlider');
+            const ySlider = document.getElementById('payloadSlider');
+
+            bSlider.addEventListener('input', (e) => document.getElementById('budgetValue').innerText = `$${e.target.value} Million`);
+            pSlider.addEventListener('input', (e) => document.getElementById('propulsionValue').innerText = `${e.target.value}%`);
+            mSlider.addEventListener('input', (e) => document.getElementById('materialsValue').innerText = `${e.target.value}%`);
+            ySlider.addEventListener('input', (e) => document.getElementById('payloadValue').innerText = `${e.target.value}%`);
+        }
+
+        // Toggle Copilot Sidebar Drawer
+        function ToggleCopilotDrawer() {
+            const drawer = document.getElementById('copilotDrawer');
+            copilotDrawerOpen = !copilotDrawerOpen;
+            
+            if (copilotDrawerOpen) {
+                drawer.classList.remove('translate-x-full');
+                drawer.classList.add('translate-x-0');
+                setTimeout(() => {
+                    document.getElementById('copilotInput')?.focus();
+                }, 200);
+            } else {
+                drawer.classList.remove('translate-x-0');
+                drawer.classList.add('translate-x-full');
+            }
+        }
+
+        // Fetch Config for Supabase & Google OAuth
+        async function InitAppConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                
+                const sbUrl = config.supabase_url || 'https://xyzcompany.supabase.co';
+                const sbKey = config.supabase_anon_key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykey';
+
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(sbUrl, sbKey);
+                    
+                    supabaseClient.auth.onAuthStateChange((event, session) => {
+                        if (session?.user) {
+                            currentUser = session.user;
+                            UpdateUserUI(currentUser);
+                        } else {
+                            currentUser = null;
+                            UpdateUserUI(null);
+                        }
+                    });
+
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session?.user) {
+                        currentUser = session.user;
+                        UpdateUserUI(currentUser);
+                    }
+                }
+            } catch (err) {
+                console.warn("Auth initialization notice:", err);
+            }
+        }
+
+        function OpenAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+            ClearAuthFeedback();
+        }
+
+        function CloseAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function SwitchAuthTab(mode) {
+            currentAuthMode = mode;
+            const tabIn = document.getElementById('tabSignInBtn');
+            const tabUp = document.getElementById('tabSignUpBtn');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            ClearAuthFeedback();
+
+            if (mode === 'signin') {
+                tabIn.className = "flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold transition";
+                tabUp.className = "flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition";
+                submitBtn.innerText = "SIGN IN TO MISSION HUD";
+            } else {
+                tabUp.className = "flex-1 py-2 text-center text-cyan-400 border-b-2 border-cyan-400 font-bold transition";
+                tabIn.className = "flex-1 py-2 text-center text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition";
+                submitBtn.innerText = "CREATE SUPABASE ACCOUNT";
+            }
+        }
+
+        async function HandleSupabaseAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmailInput').value.trim();
+            const password = document.getElementById('authPasswordInput').value;
+
+            ShowAuthFeedback("Authenticating with Supabase...", "info");
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error("Supabase client is not configured. Please check SUPABASE_URL and SUPABASE_ANON_KEY.");
+                }
+
+                if (currentAuthMode === 'signin') {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    ShowAuthFeedback("Authentication Successful! Access Granted.", "success");
+                    setTimeout(() => {
+                        CloseAuthModal();
+                        ToggleLandingView(false);
+                    }, 1000);
+                } else {
+                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    ShowAuthFeedback("Account created! Check email or sign in.", "success");
+                }
+            } catch (err) {
+                ShowAuthFeedback(`Auth Error: ${err.message || err}`, "error");
+            }
+        }
+
+        async function SignInWithGoogle() {
+            ShowAuthFeedback("Connecting to Google Cloud SSO...", "info");
+            try {
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: { redirectTo: window.location.origin }
+                    });
+                    if (error) throw error;
+                } else {
+                    if (window.google) {
+                        google.accounts.id.prompt();
+                    } else {
+                        throw new Error("Google Identity SDK or Supabase Auth unavailable.");
+                    }
+                }
+            } catch (err) {
+                ShowAuthFeedback(`Google Login Error: ${err.message || err}`, "error");
+            }
+        }
+
+        async function SignOutUser() {
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
+            currentUser = null;
+            UpdateUserUI(null);
+            ToggleLandingView(true);
+        }
+
+        function UpdateUserUI(user) {
+            const loggedOutBtn = document.getElementById('openAuthModalBtn');
+            const loggedInBadge = document.getElementById('loggedInUserBadge');
+            const userEmailText = document.getElementById('userEmailText');
+            const userAvatar = document.getElementById('userAvatar');
+
+            if (user) {
+                loggedOutBtn.classList.add('hidden');
+                loggedInBadge.classList.remove('hidden');
+                const emailStr = user.email || "commander";
+                userEmailText.innerText = emailStr;
+                userAvatar.innerText = emailStr.charAt(0).toUpperCase();
+                ToggleLandingView(false);
+            } else {
+                loggedOutBtn.classList.remove('hidden');
+                loggedInBadge.classList.add('hidden');
+            }
+        }
+
+        function ShowAuthFeedback(msg, type) {
+            const box = document.getElementById('authFeedbackMsg');
+            box.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'bg-emerald-500/20', 'text-emerald-300', 'bg-cyan-500/20', 'text-cyan-300');
+            
+            if (type === 'error') {
+                box.classList.add('bg-red-500/20', 'text-red-300', 'border', 'border-red-500/40');
+            } else if (type === 'success') {
+                box.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border', 'border-emerald-500/40');
+            } else {
+                box.classList.add('bg-cyan-500/20', 'text-cyan-300', 'border', 'border-cyan-500/40');
+            }
+            box.innerText = msg;
+        }
+
+        function ClearAuthFeedback() {
+            const box = document.getElementById('authFeedbackMsg');
+            box.classList.add('hidden');
+            box.innerText = '';
+        }
+
+        // Fetch & Structure NASA Space Weather Data
+        async function FetchSpaceWeather() {
+            const feed = document.getElementById('weatherFeed');
+            feed.innerHTML = `
+                <div class="flex items-center justify-center p-6 text-slate-400 animate-pulse">
+                    <span>Polling NASA DONKI Radar APIs...</span>
+                </div>
+            `;
+            
+            try {
+                const res = await fetch('/api/weather');
+                const data = await res.json();
+                currentGlobalWeatherSummary = data.summary || "Nominal space environment.";
+                
+                const hasFlare = data.has_active_flare || false;
+                const flrText = data.flr_data || "No significant solar flares detected.";
+                const cmeText = data.cme_data || "Nominal CME background level.";
+                const syncTime = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+                let riskLevel = "NOMINAL / LOW THREAT";
+                let riskBadge = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+                let radRate = "0.18 mSv/hr (Baseline)";
+
+                if (hasFlare) {
+                    riskLevel = "ELEVATED THREAT";
+                    riskBadge = "bg-amber-500/10 text-amber-400 border-amber-500/30";
+                    radRate = "4.65 mSv/hr (Active Flare)";
+                }
+
+                feed.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Solar Flare Status</span>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full ${hasFlare ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}"></span>
+                                <span class="font-bold ${hasFlare ? 'text-amber-300' : 'text-slate-200'}">
+                                    ${hasFlare ? 'ACTIVE EVENT DETECTED' : 'QUIET / NOMINAL'}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1 line-clamp-1" title="${EscapeHtml(flrText)}">${EscapeHtml(flrText)}</p>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Coronal Mass Ejection</span>
+                            <span class="font-bold text-slate-200">
+                                ${cmeText.includes('registered') ? 'CME EVENT TRACKED' : 'BACKGROUND LEVELS'}
+                            </span>
+                            <p class="text-[11px] text-slate-400 mt-1 line-clamp-1" title="${EscapeHtml(cmeText)}">${EscapeHtml(cmeText)}</p>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Radiation Threat Rate</span>
+                            <span class="font-bold text-cyan-300">${radRate}</span>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                            <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1">Mission Risk Level</span>
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${riskBadge}">
+                                ${riskLevel}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between px-1 pt-1 text-[10px] text-slate-500 border-t border-slate-800/60">
+                        <span>Source: NASA DONKI Radar API</span>
+                        <span>Last Updated: ${syncTime}</span>
+                    </div>
+                `;
+            } catch (err) {
+                feed.innerHTML = `
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 text-xs">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="font-bold text-slate-200">NO SIGNIFICANT ACTIVITY</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Live DONKI baseline active. Data synchronized.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Execute Spacecraft AI Simulation
+        async function ExecuteSimulation() {
+            const budget = parseInt(document.getElementById('budgetSlider').value);
+            const propulsion = parseInt(document.getElementById('propulsionSlider').value);
+            const materials = parseInt(document.getElementById('materialsSlider').value);
+            const payload = parseInt(document.getElementById('payloadSlider').value);
+            const destination = document.getElementById('destSelect').value;
+
+            const runBtn = document.getElementById('runSimBtn');
+            runBtn.innerText = "CALCULATING TELEMETRY...";
+            runBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        budget: budget,
+                        propulsion: propulsion,
+                        materials: materials,
+                        payload: payload,
+                        destination: destination,
+                        weather_summary: currentGlobalWeatherSummary
+                    })
+                });
+
+                const sim = await res.json();
+                
+                // Update Status Badge
+                const statusBadge = document.getElementById('launchStatusBadge');
+                if (sim.launch_status === 'GO') {
+                    statusBadge.className = "px-5 py-2 rounded-full font-mono text-xs font-extrabold tracking-widest uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/20 flex items-center gap-2";
+                    statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> STATUS: GO FOR LAUNCH`;
+                } else {
+                    statusBadge.className = "px-5 py-2 rounded-full font-mono text-xs font-extrabold tracking-widest uppercase bg-red-500/20 text-red-300 border border-red-500/40 shadow-lg shadow-red-500/20 flex items-center gap-2";
+                    statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400"></span> STATUS: NO-GO / HOLD`;
+                }
+
+                document.getElementById('readinessScore').innerText = `${sim.readiness_rating || 0}%`;
+                document.getElementById('allocPropulsion').innerText = `$${sim.allocation_propulsion_m || 0}M`;
+                document.getElementById('allocMaterials').innerText = `$${sim.allocation_materials_m || 0}M`;
+
+                // Render Post-Mortem Diagnostic Log cleanly
+                const logContainer = document.getElementById('postMortemLog');
+                if (sim.post_mortem_log) {
+                    const rawLog = sim.post_mortem_log;
+                    const formattedLog = rawLog
+                        .split('\n')
+                        .filter(line => line.trim().length > 0)
+                        .map(line => `<p class="mb-2.5 leading-relaxed text-slate-200">${EscapeHtml(line)}</p>`)
+                        .join('');
+                    logContainer.innerHTML = formattedLog;
+                } else {
+                    logContainer.innerText = "No telemetry log generated.";
+                }
+
+                // Render Recommended Directives as structured cards
+                const actionsList = document.getElementById('recommendedActionsList');
+                actionsList.innerHTML = '';
+                if (sim.recommended_actions && sim.recommended_actions.length > 0) {
+                    sim.recommended_actions.forEach((action, idx) => {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-start gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-200 hover:border-cyan-500/30 transition shadow-sm';
+                        li.innerHTML = `
+                            <span class="flex-shrink-0 w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs font-bold flex items-center justify-center">
+                                0${idx + 1}
+                            </span>
+                            <span class="text-xs font-mono leading-relaxed pt-0.5">${EscapeHtml(action)}</span>
+                        `;
+                        actionsList.appendChild(li);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Simulation Execution Error:", err);
+            } finally {
+                runBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    EXECUTE TELEMETRY SIMULATION
+                `;
+                runBtn.disabled = false;
+            }
+        }
+
+        // Handle Copilot Chat Form Submission
+        function HandleCopilotMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('copilotInput');
+            const q = input.value.trim();
+            if (!q) return;
+
+            const chatBox = document.getElementById('copilotChatBox');
+
+            // User Message Bubble
+            const userDiv = document.createElement('div');
+            userDiv.className = 'p-3 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-slate-100 font-mono ml-6 shadow-sm';
+            userDiv.innerHTML = `<p class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider mb-1">Commander</p>${EscapeHtml(q)}`;
+            chatBox.appendChild(userDiv);
+
+            input.value = '';
+
+            // Loading Indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'copilotLoading';
+            loadingDiv.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 font-mono mr-6 flex items-center gap-2 text-xs';
+            loadingDiv.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> Analyzing telemetry parameters...`;
+            chatBox.appendChild(loadingDiv);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // AI Response Delay Simulation
+            setTimeout(() => {
+                const loadingElem = document.getElementById('copilotLoading');
+                if (loadingElem) loadingElem.remove();
+
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-cyan-300 font-mono mr-6 leading-relaxed shadow-sm';
+                
+                let responseText = GenerateCopilotResponse(q);
+                aiDiv.innerHTML = FormatCopilotMarkdown(responseText);
+                chatBox.appendChild(aiDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 400);
+        }
+
+        function GenerateCopilotResponse(q) {
+            q = q.toLowerCase();
+            const dest = document.getElementById('destSelect').value;
+            const status = document.getElementById('launchStatusBadge').innerText;
+            const score = document.getElementById('readinessScore').innerText;
+
+            if (q.includes("login") || q.includes("auth") || q.includes("google") || q.includes("supabase")) {
+                return `**Authentication Guidance:**\nClick **AUTHENTICATE COMMANDER** in the header to sign in via **Google Cloud SSO** or **Supabase Account**. Your session state will automatically transition into the Mission Control HUD.`;
+            }
+
+            if (q.includes("weather") || q.includes("solar") || q.includes("flare") || q.includes("cme") || q.includes("radiation")) {
+                return `**Heliospheric Telemetry Analysis:**\n"${currentGlobalWeatherSummary}"\n\n*Mitigation Directive:* High solar magnetic flux requires allocating at least **35%** to **Radiation Shielding & Structure** to prevent subsystem breakdown.`;
+            }
+
+            return `**AstroForge Flight Control Summary:**\n* Target Trajectory: ${dest}\n* Flight Readiness Status: **${status}** (${score})\n\nFeel free to adjust your allocation sliders or ask how to mitigate specific telemetry risks!`;
+        }
+
+        function FormatCopilotMarkdown(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300 font-bold">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="text-slate-300">$1</em>')
+                .replace(/\n/g, '<br/>');
+        }
+
+        function EscapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+    </script>
+</body>
+</html>
