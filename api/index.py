@@ -12,7 +12,7 @@ load_dotenv()
 
 app = Flask(__name__, template_folder='../templates')
 
-# Target active flagship Groq model for ultra-low latency calculations
+# Target active flagship Groq model
 GROQ_MODEL = "openai/gpt-oss-120b"
 
 # Initialize AI compute engine securely
@@ -34,7 +34,7 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
 @app.route('/')
 def home():
-    """Renders the main Mission Control Room terminal HUD interface."""
+    """Renders the main Educational Platform interface."""
     return render_template('index.html')
 
 @app.route('/api/health', methods=['GET'])
@@ -63,12 +63,11 @@ def get_space_weather():
     end_date = datetime.utcnow().strftime('%Y-%m-%d')
     start_date = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
     
-    flr_summary = "No major solar flares detected in current telemetry window."
-    cme_summary = "Coronal Mass Ejection activity within nominal background levels."
+    flr_summary = "No major solar flares detected recently."
+    cme_summary = "Coronal Mass Ejection activity is currently normal."
     has_active_flare = False
     
     try:
-        # Fetch Solar Flare data
         flr_response = requests.get(
             NASA_DONKI_FLR_URL,
             params={"startDate": start_date, "endDate": end_date, "api_key": NASA_API_KEY},
@@ -83,10 +82,9 @@ def get_space_weather():
                 flr_summary = f"Active Class {flr_class} Solar Flare detected at {begin_time}."
                 has_active_flare = True
     except Exception as e:
-        flr_summary = f"FLR Telemetry stream degraded: {str(e)}"
+        flr_summary = f"Solar flare data unavailable: {str(e)}"
 
     try:
-        # Fetch Coronal Mass Ejection data
         cme_response = requests.get(
             NASA_DONKI_CME_URL,
             params={"startDate": start_date, "endDate": end_date, "api_key": NASA_API_KEY},
@@ -99,7 +97,7 @@ def get_space_weather():
                 time21 = latest_cme.get('startTime', 'N/A')
                 cme_summary = f"Coronal Mass Ejection registered at {time21}."
     except Exception as e:
-        cme_summary = f"CME Telemetry stream degraded: {str(e)}"
+        cme_summary = f"CME data unavailable: {str(e)}"
 
     return jsonify({
         "summary": f"{flr_summary} {cme_summary}",
@@ -111,7 +109,7 @@ def get_space_weather():
 
 @app.route('/api/simulate', methods=['POST'])
 def run_simulation():
-    """Runs spacecraft design and mission telemetry simulation using Groq AI LLM reasoning."""
+    """Runs spacecraft design and mission evaluation simulation using Groq AI."""
     data = request.get_json() or {}
     
     budget = data.get('budget', 1500)
@@ -119,10 +117,9 @@ def run_simulation():
     materials = data.get('materials', 30)
     payload = data.get('payload', 30)
     destination = data.get('destination', 'Mars Orbit')
-    weather_summary = data.get('weather_summary', 'Nominal solar magnetic field.')
+    weather_summary = data.get('weather_summary', 'Normal space weather.')
 
     if not groq_client:
-        # Fallback simulation response if Groq API Key is not set
         return jsonify({
             "launch_status": "GO" if (propulsion >= 30 and materials >= 30 and payload >= 20) else "NO-GO",
             "readiness_rating": min(95, max(20, int(propulsion * 0.8 + materials * 0.9 + payload * 0.7))),
@@ -131,14 +128,15 @@ def run_simulation():
             "allocation_payload_m": round(budget * (payload / 100.0), 2),
             "post_mortem_log": "SIMULATION COMPLETED (Offline Engine Fallback): Standard baseline parameters evaluated.",
             "recommended_actions": [
-                "Calibrate Groq API Key in environment settings for live deep AI telemetry analytics.",
-                "Ensure shield thickness meets radiation tolerance for target trajectory."
+                "Calibrate Groq API Key in environment settings for live AI evaluation.",
+                "Review your budget distributions to ensure a balanced spacecraft."
             ]
         })
 
     system_prompt = (
-        "You are AstroForge AI, an expert aerospace systems architect and mission director for interplanetary spacecraft. "
-        "Analyze the provided mission architecture, budget allocations, and space weather context to evaluate launch feasibility. "
+        "You are AstroForge AI, an expert aerospace engineering professor mentoring undergraduate students. "
+        "Review the student's spacecraft budget allocations and current space weather context to evaluate if their mission is viable. "
+        "Keep your language educational, clear, and encouraging. Avoid overly cryptic jargon. "
         "You MUST respond ONLY with valid JSON in the exact structure requested:\n"
         "{\n"
         '  "launch_status": "GO" or "NO-GO",\n'
@@ -146,17 +144,17 @@ def run_simulation():
         '  "allocation_propulsion_m": number,\n'
         '  "allocation_materials_m": number,\n'
         '  "allocation_payload_m": number,\n'
-        '  "post_mortem_log": "Detailed architectural analysis and flight risk breakdown string",\n'
+        '  "post_mortem_log": "Detailed educational analysis of why this configuration works or fails",\n'
         '  "recommended_actions": ["action item 1", "action item 2", "action item 3"]\n'
         "}"
     )
 
     user_message = (
-        f"Mission Telemetry Request:\n"
-        f"- Destination Target: {destination}\n"
-        f"- Total Allocated Budget: ${budget} Million\n"
-        f"- Parameter Priorities: Propulsion Systems={propulsion}%, Raw Materials/Shielding={materials}%, Avionics/Payload={payload}%\n"
-        f"- Current Environmental Tracking Radar: {weather_summary}"
+        f"Student Mission Plan:\n"
+        f"- Target Destination: {destination}\n"
+        f"- Total Budget: ${budget} Million\n"
+        f"- Mission Configuration: Engine Budget={propulsion}%, Protection Budget={materials}%, Payload Budget={payload}%\n"
+        f"- Current Space Weather Context: {weather_summary}"
     )
 
     try:
@@ -166,7 +164,7 @@ def run_simulation():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            temperature=0.25,
+            temperature=0.3,
             response_format={"type": "json_object"}
         )
         
@@ -176,309 +174,297 @@ def run_simulation():
 
     except Exception as e:
         return jsonify({
-            "launch_status": "NO-GO",
-            "readiness_rating": 5,
+            "launch_status": "ERROR",
+            "readiness_rating": 0,
             "allocation_propulsion_m": round(budget * (propulsion / 100.0), 2),
             "allocation_materials_m": round(budget * (materials / 100.0), 2),
             "allocation_payload_m": round(budget * (payload / 100.0), 2),
-            "post_mortem_log": f"Critical Telemetry Engine Interruption Exception: {str(e)}",
+            "post_mortem_log": f"AI Evaluation Engine Interruption: {str(e)}",
             "recommended_actions": [
-                "Verify system parameters or check connection configurations.",
-                "Ensure API environment variables are properly exported in deployment configuration."
+                "Verify your configuration parameters and try again."
             ]
         })
 
-# Master Quiz Question Bank (pool per phase id). A random sample of 2-4 is
-# served per request so repeated visits to a phase feel fresh. Users are
-# always allowed to advance regardless of whether answers are right or wrong;
-# the "correct" and "reasoning" fields let the frontend reveal the answer and
-# explain why immediately after the user selects an option.
+@app.route('/api/chat', methods=['POST'])
+def chat_copilot():
+    """Powers the Engineering Copilot AI Tutor for interactive Q&A."""
+    data = request.get_json() or {}
+    message = data.get('message', '').strip()
+    context_module = data.get('context_module', 'General Aerospace Engineering')
+
+    if not message:
+        return jsonify({"response": "Please ask a question about aerospace engineering or space mission architecture."}), 400
+
+    if not groq_client:
+        return jsonify({
+            "response": f"I am your AI Aerospace Tutor. Currently running in offline mode. Regarding '{message}': In aerospace design, every trade-off balances mass, energy, and structural reliability. Please ensure GROQ_API_KEY is configured for dynamic response generation."
+        })
+
+    system_prompt = (
+        "You are the AstroForge Engineering Copilot, a friendly and approachable university teaching assistant in aerospace engineering. "
+        "Your role is to guide undergraduate students through core concepts like orbital mechanics, propulsion, rocket anatomy, launch dynamics, space weather, and spacecraft design trade-offs. "
+        "CRITICAL FORMATTING INSTRUCTIONS - STRICTLY FOLLOW THESE RULES:\n"
+        "1. Respond using plain HTML-ready text. Use <br><br> tags to separate short, concise paragraphs.\n"
+        "2. Do NOT use any Markdown syntax whatsoever. Absolutely NO asterisks (** or *), NO hash symbols for headers (## or #), NO numbered markdown lists (1., 2., 3.), NO tables, and NO code blocks (```).\n"
+        "3. Keep your tone conversational, educational, and easy to read like a friendly university teaching assistant.\n"
+        "4. Use simple section titles as plain text followed by <br> without any formatting symbols.\n"
+        "5. Include occasional emojis where appropriate to keep it engaging 🚀.\n"
+        "6. Use real-world analogies when helpful to explain complex ideas naturally.\n"
+        "7. Avoid long information dumps. Keep explanations concise and highlight only the most important ideas.\n"
+        "8. When listing items, you must ONLY use simple bullet characters like '•' followed by a space.\n"
+        "9. MANDATORY ENDING: You must end every single response with exactly one engaging follow-up question asking if the student would like an example, a diagram, a quick quiz, or a deeper explanation."
+    )
+
+    try:
+        completion = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Context: Module '{context_module}'\nStudent Question: {message}"}
+            ],
+            temperature=0.5,
+            max_tokens=600
+        )
+        ai_reply = completion.choices[0].message.content
+        return jsonify({"response": ai_reply})
+    except Exception as e:
+        return jsonify({"response": f"AI Tutor temporarily unavailable: {str(e)}"}), 500
+
+
 ACADEMY_QUESTION_BANK = {
     1: [
         {
-            "question": "Why are liquid propellant tanks (LOX/LH2) chilled to cryogenic temperatures prior to launch?",
+            "question": "Why are liquid propellants like liquid oxygen and hydrogen chilled to extreme cryogenic temperatures?",
             "options": [
-                "To cool down the rocket metal skin",
-                "To maximize liquid propellant density so more fuel mass fits in the tanks",
-                "To lower pressure inside the propellant lines",
+                "To cool down the rocket's external metal skin during flight",
+                "To maximize liquid density, allowing maximum propellant mass to fit inside internal tanks",
+                "To reduce pressure inside the engines safely",
                 "To prevent fuel from evaporating in microgravity"
             ],
             "correct": 1,
-            "reasoning": "Cryogenic cooling dramatically increases propellant density. Liquid oxygen and hydrogen take up significantly less volume when liquid, allowing rockets to pack maximum fuel mass into lightweight structural tanks."
+            "reasoning": "Cooling gases until they liquefy drastically increases their density. This allows engineers to pack maximum fuel mass into smaller, lighter tanks."
         },
         {
-            "question": "What is the primary operational purpose of the launchpad Sound Suppression Water Deluge system?",
+            "question": "What primary purpose does flooding the launchpad with massive amounts of water serve during liftoff?",
             "options": [
-                "To extinguish pad grass fires",
-                "To dampen destructive acoustic shock waves (>200 dB) that could tear apart the rocket hull",
-                "To wash off rocket nozzle soot",
-                "To cool down the exhaust gas into water vapor"
+                "To extinguish grass fires around the launch facility",
+                "To absorb and dampen acoustic shock waves that could structurally shatter the rocket",
+                "To clean carbon soot off the engine bells",
+                "To convert exhaust gas into harmless steam"
             ],
             "correct": 1,
-            "reasoning": "At liftoff, rocket engines generate sound energy over 200 dB. Dumping tens of thousands of gallons of water per second dampens sound waves that would otherwise bounce off concrete and destroy delicate onboard avionics."
-        },
-        {
-            "question": "What occurs during the autonomous Terminal Countdown sequence triggered at T-Minus 10 minutes?",
-            "options": [
-                "Flight control transitions to onboard guidance computers and internal battery power",
-                "Astronauts execute manual engine throttle adjustments",
-                "Satellite payloads are powered down",
-                "Ground crews manually disconnect fueling valves"
-            ],
-            "correct": 0,
-            "reasoning": "In the final minutes of countdown, flight control switches automatically from ground servers to the vehicle's autonomous flight computers. Ground power umbilicals detach as onboard batteries take over."
-        },
-        {
-            "question": "Why are spark igniters fired below engine nozzles seconds BEFORE engine clamp release?",
-            "options": [
-                "To test battery voltage",
-                "To burn off residual unburned hydrogen gas and prevent explosive hard starts",
-                "To heat up the rocket payload",
-                "To signal ground personnel"
-            ],
-            "correct": 1,
-            "reasoning": "Pre-ignition sparkers burn off any lingering hydrogen/methane gas around the engine bell, preventing dangerous explosive shock detonations ('hard starts') when main fuel valves open."
+            "reasoning": "Rocket engines produce sound energy exceeding 200 decibels. Sound suppression water deluge systems absorb acoustic energy so waves don't bounce off the pad and damage the vehicle."
         }
     ],
     2: [
         {
-            "question": "What does 'Max-Q' signify during a rocket's atmospheric ascent trajectory?",
+            "question": "Why do orbital spacecraft need to reach a high horizontal velocity rather than just flying straight up?",
             "options": [
-                "Maximum rate of fuel consumption",
-                "The exact point of Maximum Dynamic Pressure where aerodynamic drag forces peak",
-                "Maximum orbital altitude achieved",
-                "Maximum radiation exposure in the magnetosphere"
+                "To avoid satellite debris in lower atmospheric bands",
+                "To enter continuous freefall around Earth where forward velocity matches Earth's curvature",
+                "To ensure engines stay cool in the vacuum of space",
+                "To direct solar panels toward sunlight continuously"
             ],
             "correct": 1,
-            "reasoning": "Max-Q occurs when high vehicle speed meets thick atmosphere. The combination of accelerating velocity and air density creates the absolute peak mechanical stress load on the rocket's hull."
+            "reasoning": "Orbiting isn't just about reaching space height—it's about moving sideways fast enough (~28,000 km/h) that as gravity pulls the craft down, Earth curves away underneath it at the exact same rate."
         },
         {
-            "question": "Why do rocket main engines throttle down slightly as the vehicle approaches Max-Q?",
+            "question": "What distinguishes Low Earth Orbit (LEO) from Geostationary Earth Orbit (GEO)?",
             "options": [
-                "To conserve fuel reserves for orbit",
-                "To reduce dynamic aerodynamic loads and avoid structural hull failure",
-                "To allow turbopumps to cool off",
-                "To improve radio telemetry signals"
+                "LEO is reserved exclusively for military satellites",
+                "GEO satellites orbit at ~35,786 km and stay fixed over one geographical spot on Earth",
+                "LEO requires double the Delta-v of GEO",
+                "GEO is inside Earth's upper atmosphere"
             ],
             "correct": 1,
-            "reasoning": "Throttling engines back slightly reduces acceleration forces precisely when atmospheric drag is at its maximum intensity. Once past Max-Q into thinner air, full thrust is restored."
-        },
-        {
-            "question": "What creates the dramatic cone-shaped vapor cloud (Prandtl-Glauert effect) near Max-Q?",
-            "options": [
-                "Engine exhaust smoke leaking upward",
-                "Local pressure drops at transonic speeds causing atmospheric water vapor to instantly condense",
-                "Cryogenic fuel tank venting",
-                "Thermal protection tiles scorching"
-            ],
-            "correct": 1,
-            "reasoning": "As the rocket approaches Mach 1 near Max-Q, rapid pressure drops around the expanding fairing cause moisture in ambient air to condense into a visible cone shockwave cloud."
-        },
-        {
-            "question": "Why does a rocket perform a 'Gravity Turn' rather than flying straight up into space?",
-            "options": [
-                "To avoid active satellite constellations",
-                "To convert vertical kinetic energy into horizontal velocity required for orbit while minimizing steering losses",
-                "To keep the rocket over water",
-                "To point solar panels toward the sun"
-            ],
-            "correct": 1,
-            "reasoning": "Achieving orbit requires reaching ~28,000 km/h of horizontal speed. A gravity turn uses Earth's gravitational pull to smoothly curve the vehicle trajectory sideways without wasting steering fuel."
+            "reasoning": "At ~35,786 km altitude, a satellite's orbital period matches Earth's 24-hour rotational period, causing it to appear stationary over a single point on the equator."
         }
     ],
     3: [
         {
-            "question": "What event occurs at MECO (Main Engine Cut-Off)?",
+            "question": "In a spacecraft mission design team, what is the core responsibility of the Guidance, Navigation, and Control (GNC) Engineer?",
             "options": [
-                "An emergency abort signal",
-                "Shutdown of first-stage engines prior to pneumatic staging separation",
-                "Final spacecraft burn in orbit",
-                "Payload deployment trigger"
+                "Managing financial budgets and vendor contracts",
+                "Calculating trajectories, tracking position, and controlling spacecraft attitude/pointing",
+                "Designing solar panel silicon arrays",
+                "Writing launch marketing documentation"
             ],
             "correct": 1,
-            "reasoning": "MECO halts first-stage main engine thrust after burning the majority of propellant. Stopping thrust ensures a clean separation of the heavy booster from the upper stage."
+            "reasoning": "GNC engineers design the sensors, algorithms, and thruster effectors that determine where the spacecraft is, where it needs to go, and how it points its antennas or thrusters."
         },
         {
-            "question": "According to Tsiolkovsky's Rocket Equation, why drop the spent first stage booster?",
+            "question": "Why is the Flight Director considered the ultimate authority during live mission launch operations?",
             "options": [
-                "It is required by international space law",
-                "Shedding dead structural mass improves the remaining stage's mass ratio and achievable velocity",
-                "It reduces radio interference",
-                "It keeps the booster from overheating"
+                "They own the financial company executing the launch",
+                "They synthesize real-time assessments from all technical console leads to make fast GO/NO-GO decisions",
+                "They personally code the flight computer software",
+                "They operate the ground telemetry antennas manually"
             ],
             "correct": 1,
-            "reasoning": "The rocket equation shows final velocity depends heavily on the ratio of starting mass to remaining mass. Dropping an empty, heavy booster lets the upper stage accelerate far more efficiently with its own fuel."
-        },
-        {
-            "question": "Why do ullage thrusters fire briefly before second-stage engine ignition?",
-            "options": [
-                "To slow the vehicle down for staging",
-                "To settle liquid propellant toward the tank outlets in zero-gravity, preventing pump cavitation",
-                "To realign the guidance computer",
-                "To vent excess oxygen"
-            ],
-            "correct": 1,
-            "reasoning": "In zero-g, propellant floats freely inside the tank. Small ullage thrusters provide gentle acceleration that pushes fuel toward the outlet, ensuring the main engine turbopumps ingest liquid instead of gas bubbles."
+            "reasoning": "The Flight Director leads the mission team, listening to specialized console officers (Propulsion, Avionics, Trajectory) to render unified, safety-critical operational calls."
         }
     ],
     4: [
         {
-            "question": "Why is the payload fairing jettisoned once the vehicle crosses the Karman Line?",
+            "question": "What aerodynamic phenomenon is designated by the term 'Max-Q' during atmospheric flight?",
             "options": [
-                "To reduce radio signal interference",
-                "Dense atmospheric drag has disappeared, so the protective shielding becomes unnecessary dead weight",
-                "To expose solar panels early",
-                "To trigger the next stage's ignition sequence"
+                "The point where engines consume maximum propellant per second",
+                "Maximum Dynamic Pressure, representing the peak mechanical stress on the rocket structure",
+                "Maximum Quantum radiation exposure in the upper atmosphere",
+                "The point where the vehicle breaks the sound barrier"
             ],
             "correct": 1,
-            "reasoning": "Below 100 km, the fairing protects the payload from aerodynamic heating and pressure. Once in near-vacuum, that protection is no longer needed, so jettisoning it maximizes payload mass carried to orbit."
+            "reasoning": "Max-Q occurs when the combination of atmospheric density and vehicle speed creates the highest physical pressure on the rocket's skin and frame."
         },
         {
-            "question": "What material is the payload fairing typically constructed from, and why?",
+            "question": "According to the Tsiolkovsky Rocket Equation, why is multi-stage rocket design necessary for orbital access?",
             "options": [
-                "Solid steel, for maximum durability",
-                "Lightweight carbon-composite honeycomb panels, balancing strength with minimal added mass",
-                "Reinforced glass, for visibility",
-                "Pure aluminum foil, for radio transparency"
+                "Single-stage rockets are forbidden by international space law",
+                "Discarding empty propellant tanks removes useless dead weight, dramatically improving acceleration efficiency",
+                "Multiple engines prevent fuel line icing",
+                "It allows the rocket to change direction without using RCS thrusters"
             ],
             "correct": 1,
-            "reasoning": "Carbon-composite honeycomb structures provide high structural strength while adding minimal mass, which is critical since every extra kilogram reduces how much payload can reach orbit."
+            "reasoning": "Carrying heavy, empty metal tanks all the way to orbit wastes huge amounts of energy. Staging discards spent structure so remaining fuel pushes a much lighter vehicle."
         }
     ],
     5: [
         {
-            "question": "What is meant by 'orbital velocity' at roughly 28,000 km/h?",
+            "question": "Why are Coronal Mass Ejections (CMEs) dangerous to unshielded interplanetary spacecraft?",
             "options": [
-                "The maximum speed a rocket engine can produce",
-                "The sideways speed at which a falling object's curved path matches the curvature of the Earth, resulting in continuous freefall around it",
-                "The re-entry speed for returning spacecraft",
-                "The speed at which fuel tanks depressurize"
+                "They increase atmospheric drag at LEO altitudes",
+                "They release massive clouds of magnetized high-energy plasma that can disrupt electronics and harm astronauts",
+                "They create intense physical wind pressures in deep space vacuum",
+                "They freeze the spacecraft's liquid propellants"
             ],
             "correct": 1,
-            "reasoning": "Orbit isn't about escaping gravity; it is about moving sideways fast enough that as the spacecraft falls toward Earth, the ground curves away at the same rate, producing a continuous freefall path around the planet."
+            "reasoning": "CMEs spew billion-ton clouds of energized particles and magnetic fields. Without magnetic fields or physical radiation shielding, spacecraft electronics can fry and humans suffer radiation sickness."
         },
         {
-            "question": "What happens at SECO (Second Engine Cut-Off)?",
+            "question": "How does NASA's DONKI system assist space mission planners?",
             "options": [
-                "The rocket begins re-entry",
-                "The second stage shuts down thrust after reaching target orbital velocity, allowing payload separation",
-                "The mission is aborted",
-                "The first stage re-ignites for landing"
+                "By tracking asteroid mining rights",
+                "By providing real-time telemetry and predictive space weather monitoring for solar flares and CMEs",
+                "By calculating launch vehicle manufacturing costs",
+                "By scheduling astronaut sleep rotations"
             ],
             "correct": 1,
-            "reasoning": "SECO marks the moment the upper stage has delivered the spacecraft to its target orbital speed and altitude. Engines cut off and the payload can then safely separate and deploy."
+            "reasoning": "NASA's Space Weather Database Of Notifications, Knowledge, Information (DONKI) tracks space weather events to protect orbiting assets and space crews."
+        }
+    ],
+    6: [
+        {
+            "question": "In spacecraft design, what is meant by an 'engineering trade-off'?",
+            "options": [
+                "Exchanging spare parts with international space agencies",
+                "Balancing competing constraints like mass, power, and cost—e.g., adding shield mass reduces scientific payload capacity",
+                "Selling old rocket designs to private companies",
+                "Trading fuel between first and second stages mid-flight"
+            ],
+            "correct": 1,
+            "reasoning": "Every kilogram added to one system (like heavy radiation shielding) must be removed from another (like science instruments or fuel) due to overall launch mass limits."
         },
         {
-            "question": "Why do spent upper stages perform a 'passivation' and de-orbit burn after payload release?",
+            "question": "What is 'Delta-v' (Δv) in mission planning?",
             "options": [
-                "To recover fuel for reuse",
-                "To vent remaining energy and safely de-orbit, reducing the risk of orbital debris and explosions",
-                "To boost the payload further",
-                "To recharge onboard batteries"
+                "The change in rocket temperature during re-entry",
+                "The total velocity change a spacecraft can achieve with its available onboard propellants",
+                "The difference in pressure between engines",
+                "The rate of atmospheric density decay"
             ],
             "correct": 1,
-            "reasoning": "Leftover pressurized propellant or battery energy in a discarded stage can rupture and create debris. Passivation vents these hazards and a de-orbit burn ensures the stage safely re-enters rather than lingering as space junk."
+            "reasoning": "Delta-v is the scalar measure of impulse needed to perform orbital maneuvers (like changing orbits or burning for Mars). It represents a spacecraft's total 'maneuver budget'."
         }
     ]
 }
 
 
-def get_randomized_questions(phase_id):
-    """Selects a random 2-4 question subset for a given phase from the bank."""
-    pool = ACADEMY_QUESTION_BANK.get(phase_id, [])
-    count = min(len(pool), random.randint(2, 4))
-    return random.sample(pool, count) if pool else []
+def get_randomized_questions(module_id):
+    """Retrieves and shuffles question options for dynamic student assessment."""
+    q_list = ACADEMY_QUESTION_BANK.get(module_id, ACADEMY_QUESTION_BANK[1])
+    processed = []
+    for q in q_list:
+        q_copy = dict(q)
+        processed.append(q_copy)
+    return processed
 
 
 @app.route('/api/academy', methods=['GET'])
-def get_academy_phases():
-    """Provides structured rocket launch educational phase data and interactive diagnostic checks."""
-    phases = [
+def get_academy_content():
+    """Serves structured educational modules for the Aerospace Rocket Academy."""
+    modules = [
         {
             "id": 1,
-            "title": "Phase 1: Pre-Launch Prep & Countdown",
-            "subtitle": "Cryogenic Propellant Loading & Terminal Ignition Sequence",
-            "badge": "T-MINUS COUNTDOWN",
-            "altitude": "0 km",
-            "velocity": "0 km/h",
-            "dynamic_pressure": "0 kPa",
-            "summary": "Pre-launch operations involve chilling rocket tanks with liquid oxygen and liquid hydrogen/RP-1 kerosene, performing flight control computer handoffs at T-10 minutes, and triggering spark igniters to burn off excess unburned gases prior to hold-down clamp release.",
-            "key_concepts": [
-                "Cryogenic density management for maximum propellant mass",
-                "Acoustic water deluge sound suppression (over 200 dB mitigation)",
-                "Autonomous onboard flight computer handoff and battery power transition"
-            ]
+            "title": "Module 1: Rocket Fundamentals",
+            "subtitle": "Anatomy, Propulsion, & Structural Systems",
+            "badge": "BASICS",
+            "intro": "Every orbital launch vehicle is an extreme engineering balancing act combining high-energy thermodynamics, lightweight structures, and avionics.",
+            "lesson": "A rocket's primary job is to deliver a payload into space. To achieve this, it consists of four major sub-systems: Propulsion (engines and cryogenic fuel tanks), Structures (frame and aerodynamic fairings), Guidance & Control (flight computers and grid fins), and Payload (satellites or crew capsules). Liquid-propellant engines combine super-cooled fuels like Liquid Hydrogen (LH2) or Methane (CH4) with Liquid Oxygen (LOX) in a combustion chamber, expelling gas at hypersonic speeds to produce thrust according to Newton's Third Law.",
+            "fact": "A Saturn V rocket burned roughly 20 tons of propellant per second at liftoff—93% of its total launch mass was pure fuel!",
+            "summary": "Rockets rely on reaction mass expelled through bell nozzles. Structures are kept as thin as soda cans to maximize payload efficiency.",
+            "visualType": "anatomy"
         },
         {
             "id": 2,
-            "title": "Phase 2: Liftoff & Max-Q Aerodynamics",
-            "subtitle": "Supersonic Acceleration & Peak Atmospheric Stress",
-            "badge": "MAX-Q ASCENT",
-            "altitude": "12 - 15 km",
-            "velocity": "1,600 - 2,200 km/h",
-            "dynamic_pressure": "35 - 45 kPa",
-            "summary": "At liftoff, the rocket accelerates vertically before initiating a gravity turn trajectory. Max-Q (Maximum Dynamic Pressure) represents the exact flight moment where aerodynamic drag stress on the vehicle hull reaches its absolute peak. Engines throttle back slightly to ensure structural integrity.",
-            "key_concepts": [
-                "Gravity turn trajectory for optimal orbital kinetic energy conversion",
-                "Engine throttling to protect hull against aerodynamic overstress",
-                "Prandtl-Glauert shock wave condensation (vapor cone effect) at supersonic speeds"
-            ]
+            "title": "Module 2: Space Missions & Orbits",
+            "subtitle": "Orbital Mechanics & Trajectories",
+            "badge": "ORBITS",
+            "intro": "Reaching space is only half the battle; staying in space requires mastering orbital mechanics.",
+            "lesson": "An orbit is a continuous state of freefall. When a rocket accelerates horizontally to ~7.8 km/s (17,500 mph) in Low Earth Orbit (LEO), the Earth curves downward at the exact same rate the spacecraft falls toward it. Higher orbits like Geostationary Earth Orbit (GEO) at 35,786 km require additional energy (Delta-v) but allow satellites to remain fixed above a single terrestrial coordinate. Interplanetary missions to Mars or Lunar transfers require precise Hohmann Transfer trajectories that utilize gravitational wells.",
+            "fact": "At LEO speeds, astronauts aboard the International Space Station experience 16 sunrises and sunsets every 24 hours.",
+            "summary": "Orbital altitude determines period and speed. Trajectory maneuvers require calculated burns of velocity called Delta-v.",
+            "visualType": "orbit"
         },
         {
             "id": 3,
-            "title": "Phase 3: Main Engine Cut-Off (MECO) & Staging",
-            "subtitle": "Booster Separation & Second-Stage Vacuum Ignition",
-            "badge": "STAGE SEPARATION",
-            "altitude": "65 - 80 km",
-            "velocity": "7,500 - 9,000 km/h",
-            "dynamic_pressure": "< 1 kPa",
-            "summary": "When the first stage exhausts its main propellant supply, MECO (Main Engine Cut-Off) is triggered. Pneumatic or pyrotechnic pushers cleanly detach the spent booster. Small ullage thrusters settle propellant in zero-g before the upper-stage vacuum engine ignites.",
-            "key_concepts": [
-                "Mass ratio optimization via Tsiolkovsky's rocket equation",
-                "Vacuum-expanded engine nozzle bells for maximum thrust efficiency (Specific Impulse)",
-                "Ullage thruster acceleration to prevent zero-g fuel pump cavitation"
-            ]
+            "title": "Module 3: Space Mission Team Roles",
+            "subtitle": "Engineering Disciplines & Operations",
+            "badge": "ROLES",
+            "intro": "No spacecraft flies alone. Successful spaceflight relies on multi-disciplinary engineering teams working in synchronized harmony.",
+            "lesson": "In aerospace engineering, specialized teams oversee distinct subsystems: Flight Directors hold ultimate decision authority; Mission Planners optimize trajectory budgets; Propulsion Engineers manage turbopumps and chamber pressures; Guidance, Navigation & Control (GNC) Engineers write attitude-determination algorithms; Avionics Engineers build radiation-tolerant flight computers; and Payload Engineers ensure scientific instruments survive launch vibration environments.",
+            "fact": "During Apollo 11's lunar landing, 24-year-old Guidance Officer Steve Bales saved the mission by correctly identifying the 1202 computer overload code in seconds.",
+            "summary": "Space missions demand seamless cross-talk between Propulsion, GNC, Thermal, Avionics, and Flight Operations disciplines.",
+            "visualType": "team"
         },
         {
             "id": 4,
-            "title": "Phase 4: Karman Line Fairing Separation",
-            "subtitle": "Atmospheric Boundary Crossing & Spacecraft Exposure",
-            "badge": "KARMAN LINE CROSSING",
-            "altitude": "100 - 120 km",
-            "velocity": "12,000 - 16,000 km/h",
-            "dynamic_pressure": "~ 0 kPa",
-            "summary": "As the vehicle crosses the Karman Line (100 km altitude) into space vacuum, dense air friction disappears. The protective carbon-composite payload fairing halves split apart and jettison, discarding dead weight to maximize orbital payload capacity.",
-            "key_concepts": [
-                "Aerodynamic and thermal shielding during atmospheric ascent",
-                "Pneumatic fairing detachment in near-vacuum space environments",
-                "Lightweight carbon-composite honeycomb structural design"
-            ]
+            "title": "Module 4: Rocket Launch Process",
+            "subtitle": "Ignition, Max-Q, & Staging Mechanics",
+            "badge": "LAUNCH",
+            "intro": "From pad water deluge to engine cutoff, the ascent profile is a tightly orchestrated sequence of physical milestones.",
+            "lesson": "The launch countdown leads to ignition, where liquid turbopumps spin at up to 30,000 RPM. Immediately after liftoff, the vehicle executes a 'Gravity Turn'—gently tilting sideways to let gravity naturally turn its velocity vector horizontal. As atmospheric density drops and velocity rises, the rocket passes through 'Max-Q' (Maximum Dynamic Pressure), where throttle is reduced to prevent structural fatigue. Once first stage fuel empties, staging occurs: spent boosters drop away and second-stage vacuum engines ignite (SECO).",
+            "fact": "During Max-Q, dynamic atmospheric stress on a rocket can exceed 30 kilopascals—equivalent to hundreds of tons pushing against the vehicle nose.",
+            "summary": "Gravity turns minimize aerodynamic drag losses. Staging sheds dead structure mass to unlock orbital acceleration.",
+            "visualType": "launch"
         },
         {
             "id": 5,
-            "title": "Phase 5: Orbital Insertion & Payload Deployment (SECO)",
-            "subtitle": "Second Engine Cut-Off & Spacecraft Mission Control Lock",
-            "badge": "ORBITAL INSERTION",
-            "altitude": "200 - 500 km",
-            "velocity": "27,500 - 28,200 km/h",
-            "dynamic_pressure": "0 kPa",
-            "summary": "The second stage accelerates the vehicle to orbital speed (~28,000 km/h, where sideways velocity matches Earth's curvature). After SECO (Second Engine Cut-Off), the satellite detaches, deploys solar arrays, locks ground tracking communications, and the booster performs a safe de-orbit burn.",
-            "key_concepts": [
-                "Orbital velocity physics (~7.8 km/s continuous freefall trajectory)",
-                "Autonomous solar panel deployment and attitude control stabilization",
-                "Passivation and upper-stage de-orbit burns to prevent orbital space debris"
-            ]
+            "title": "Module 5: Space Weather Telemetry",
+            "subtitle": "Solar Flares, CMEs, & Radiation Shielding",
+            "badge": "WEATHER",
+            "intro": "Space is not a calm vacuum—it is constantly blasted by high-energy solar radiation and magnetic storms.",
+            "lesson": "Solar Flares release massive pulses of X-rays and ultraviolet radiation at light speed, while Coronal Mass Ejections (CMEs) spew billions of tons of magnetized solar plasma across interplanetary space. When solar particles hit spacecraft, they can cause Single Event Upsets (SEUs) in microchips or accumulate electrical charge that short-circuits power grids. Aerospace engineers use NASA DONKI telemetry to monitor solar activity and equip spacecraft with aluminum, polyethylene, or magnetic shielding.",
+            "fact": "The Carrington Event of 1859 was a CME so intense it caused aurora borealis as far south as Hawaii and sparked telegraph wires worldwide.",
+            "summary": "Space weather poses direct hazards to electronics and astronauts. NASA DONKI provides crucial early warnings.",
+            "visualType": "weather"
+        },
+        {
+            "id": 6,
+            "title": "Module 6: Mission Planning & Trade-offs",
+            "subtitle": "Budget Distributions & Engineering Balances",
+            "badge": "CAPSTONE",
+            "intro": "Every aerospace mission is governed by hard physical constraints: Mass vs. Power vs. Financial Budget.",
+            "lesson": "Engineering trade-offs are central to mission design. Allocating too much budget to heavy Engine Propulsion limits the weight available for Radiation Shielding or Science Payloads. Conversely, under-investing in engine performance risks leaving the craft stranded short of its target orbit. Before executing a mission simulation, engineers create trade-off matrices to optimize performance across target destinations like Mars, the Moon, or Europa.",
+            "fact": "NASA's James Webb Space Telescope took over 20 years of trade-off optimization to balance its 6.5-meter golden mirror against Ariane 5 rocket payload fairing size constraints.",
+            "summary": "Successful mission architecture balances engine performance, structural protection, and payload capabilities within fixed financial limits.",
+            "visualType": "tradeoff"
         }
     ]
 
-    # Attach a fresh random sample of 2-4 quiz questions to each phase.
-    # Users can always proceed to the next phase regardless of whether they
-    # answer correctly -- "correct" and "reasoning" are included so the
-    # frontend can reveal the right answer and explain it immediately.
-    for phase in phases:
-        phase["questions"] = get_randomized_questions(phase["id"])
+    for mod in modules:
+        mod["questions"] = get_randomized_questions(mod["id"])
 
-    return jsonify({"phases": phases, "status": "OK"})
+    return jsonify({"modules": modules, "status": "OK"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
