@@ -197,68 +197,68 @@
                     <h2 class="font-display text-2xl font-bold text-white">Undergraduate Curriculum Map</h2>
                     <p class="text-xs text-slate-400 font-mono mt-1">Structured learning sequence designed for engineering students</p>
                 </div>
-                <span class="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-lg border border-cyan-500/30">6 MODULES + CAPSTONE SIMULATION</span>
+                <span class="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-lg border border-cyan-500/30">2 ACADEMIES · 20 MODULES · CAPSTONE SIMULATION</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div onclick="ShowSection('academy'); SelectModule(1);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
+                <div onclick="ShowSection('academy'); SwitchAcademy(1); SelectModule(1);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-2xl">🚀</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 1</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACADEMY I · MODULE 1</span>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Rocket Fundamentals</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Explore liquid cryogenic propulsion, turbopump mechanics, engine bells, and lightweight structural staging.</p>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Introduction to Aerospace Engineering</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Start from zero — what aerospace engineering is, why it exists, and why mass dominates every design decision.</p>
                     <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
                 </div>
 
-                <div onclick="ShowSection('academy'); SelectModule(2);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-2xl">🌍</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 2</span>
-                    </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Space Missions & Orbits</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Master LEO vs GEO orbital mechanics, velocity requirements, continuous freefall physics, and Hohmann transfers.</p>
-                    <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
-                </div>
-
-                <div onclick="ShowSection('academy'); SelectModule(3);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-2xl">👨‍🚀</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 3</span>
-                    </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Mission Engineering Team</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Understand roles across Flight Operations, GNC engineering, Avionics, Propulsion, and Safety consoles.</p>
-                    <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
-                </div>
-
-                <div onclick="ShowSection('academy'); SelectModule(4);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
+                <div onclick="ShowSection('academy'); SwitchAcademy(1); SelectModule(4);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-2xl">🔥</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 4</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACADEMY I · MODULE 4</span>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Rocket Launch Process</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Step through launch countdowns, pad sound suppression, Gravity Turns, Max-Q stress, and staging SECO events.</p>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Propulsion Systems & Rocket Engines</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">How thrust is really generated, why nozzle shape matters, and the trade-off between raw thrust and specific impulse.</p>
                     <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
                 </div>
 
-                <div onclick="ShowSection('academy'); SelectModule(5);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
+                <div onclick="ShowSection('academy'); SwitchAcademy(1); SelectModule(8);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-2xl">☀️</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 5</span>
+                        <span class="text-2xl">🌍</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACADEMY I · MODULE 8</span>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Space Weather Dynamics</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Analyze live NASA DONKI telemetry on Solar Flares, Coronal Mass Ejections, and radiation protection.</p>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Orbits & Orbital Mechanics</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Why orbits are continuous freefall, LEO vs GEO, Hohmann transfers, and escape velocity — explained from first principles.</p>
                     <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
                 </div>
 
-                <div onclick="ShowSection('academy'); SelectModule(6);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
+                <div onclick="ShowSection('academy'); SwitchAcademy(1); SelectModule(9);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-2xl">🛰️</span>
-                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MODULE 6</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACADEMY I · MODULE 9</span>
                     </div>
-                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Mission Planning & Trade-offs</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Learn to balance Engine performance, Protection shielding, and Science payloads within strict financial constraints.</p>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Rocket Staging & Launch Sequence</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Gravity turns, Max-Q, and why staging — jettisoning dead weight mid-flight — is what makes reaching orbit possible.</p>
                     <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
+                </div>
+
+                <div onclick="ShowSection('academy'); SwitchAcademy(1); SelectModule(10);" class="glass-panel p-6 rounded-2xl border border-slate-800 hover:border-cyan-500/50 transition cursor-pointer group hover:shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-2xl">☀️</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACADEMY I · MODULE 10</span>
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Space Weather & Mission Environment</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">Analyze live NASA DONKI telemetry on Solar Flares, Coronal Mass Ejections, and radiation shielding trade-offs.</p>
+                    <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Start Lesson &rarr;</div>
+                </div>
+
+                <div onclick="ShowSection('academy'); SwitchAcademy(2); SelectModule(1);" class="glass-panel p-6 rounded-2xl border border-cyan-500/30 hover:border-cyan-400 transition cursor-pointer group hover:shadow-xl bg-cyan-950/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-2xl">🧭</span>
+                        <span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">ACADEMY II</span>
+                    </div>
+                    <h3 class="font-display text-lg font-bold text-white group-hover:text-cyan-300 transition mb-2">Mission Planning Academy</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-sans mb-4">10 modules that teach every trade-off the Mission Simulation asks you to make — budget, propulsion, shielding, and risk.</p>
+                    <div class="text-[11px] font-mono text-cyan-400 flex items-center gap-1 group-hover:translate-x-1 transition">Explore Academy II &rarr;</div>
                 </div>
             </div>
         </div>
@@ -282,8 +282,8 @@
     <section id="academySection" class="hidden max-w-[1400px] w-full mx-auto px-4 sm:px-6 py-10 flex-1 animate-fade-in space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
             <div>
-                <h2 class="font-display text-3xl font-extrabold text-white">Interactive <span class="text-cyan-400">Rocket Academy</span></h2>
-                <p class="text-sm font-mono text-slate-400 mt-1">Undergraduate Aerospace Engineering Coursework</p>
+                <h2 id="academyHeaderTitle" class="font-display text-3xl font-extrabold text-white">Interactive <span class="text-cyan-400">Rocket Academy</span></h2>
+                <p id="academyHeaderSubtitle" class="text-sm font-mono text-slate-400 mt-1">Undergraduate Aerospace Engineering Coursework</p>
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="ToggleChat()" class="px-4 py-2 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 font-mono text-sm font-semibold hover:bg-slate-800 transition">
@@ -295,7 +295,16 @@
             </div>
         </div>
 
-        <div id="academyPhaseStepper" class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6"></div>
+        <div class="flex flex-wrap items-center gap-3">
+            <button id="academyTabBtn1" onclick="SwitchAcademy(1)" class="px-5 py-3 rounded-xl border font-mono text-sm font-bold tracking-wide transition bg-cyan-500/20 border-cyan-400 text-cyan-300">
+                🚀 ROCKET ACADEMY I <span class="hidden sm:inline">— Aerospace Foundations</span>
+            </button>
+            <button id="academyTabBtn2" onclick="SwitchAcademy(2)" class="px-5 py-3 rounded-xl border font-mono text-sm font-bold tracking-wide transition bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700">
+                🧭 ROCKET ACADEMY II <span class="hidden sm:inline">— Mission Planning Academy</span>
+            </button>
+        </div>
+
+        <div id="academyPhaseStepper" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"></div>
 
         <div id="academyPhaseContent" class="grid grid-cols-1 gap-8"></div>
     </section>
@@ -310,45 +319,50 @@
                 </h2>
 
                 <div class="mb-5">
-                    <label class="block text-sm font-mono text-slate-400 mb-2 uppercase tracking-wider">Target Destination</label>
+                    <label class="block text-sm font-mono text-slate-400 mb-2 uppercase tracking-wider">Target Destination <span title="Destination determines Delta-v needs, travel time, and environmental hazards — see Academy II, Module 2." class="text-cyan-500 cursor-help">ⓘ</span></label>
                     <select id="destSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 text-sm focus:outline-none focus:border-cyan-500 transition">
                         <option value="Mars Orbit">Mars Orbit</option>
                         <option value="Lunar Base Alpha">Lunar Surface (Shackleton Crater)</option>
                         <option value="Europa Probe">Europa Sub-surface Ice Probe</option>
                         <option value="Asteroid Belt">Asteroid Belt Mining Station</option>
                     </select>
+                    <p id="destHint" class="text-[10px] text-slate-500 font-mono mt-2 leading-relaxed"></p>
                 </div>
 
                 <div class="mb-5 p-5 rounded-xl bg-slate-900/50 border border-slate-800">
                     <div class="flex justify-between items-center mb-2 font-mono text-sm">
-                        <span class="text-slate-400 uppercase">Total Budget Allocation</span>
+                        <span class="text-slate-400 uppercase">Total Budget Allocation <span title="Your fixed total resource — every dollar allocated to one category is unavailable to the others. See Academy II, Module 4." class="text-cyan-500 cursor-help">ⓘ</span></span>
                         <span id="budgetValue" class="text-cyan-400 font-bold">$1500 Million</span>
                     </div>
                     <input type="range" id="budgetSlider" min="500" max="5000" step="50" value="1500" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <p class="text-[10px] text-slate-500 font-mono mt-2">A fixed budget forces trade-offs — this is the resource propulsion, protection, and payload all compete for.</p>
                 </div>
 
                 <div class="mb-5 p-5 rounded-xl bg-slate-900/50 border border-slate-800">
                     <div class="flex justify-between items-center mb-2 font-mono text-sm">
-                        <span class="text-slate-400 uppercase">Engine Propulsion</span>
+                        <span class="text-slate-400 uppercase">Engine Propulsion <span title="Determines your Delta-v (maneuvering) budget for both the journey and arrival. See Academy II, Module 5." class="text-cyan-500 cursor-help">ⓘ</span></span>
                         <span id="propulsionValue" class="text-slate-200 font-bold">40%</span>
                     </div>
                     <input type="range" id="propulsionSlider" min="10" max="70" step="5" value="40" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <p class="text-[10px] text-slate-500 font-mono mt-2">Covers Delta-v for cruise and orbital insertion — under-budgeting this is a common cause of mission failure.</p>
                 </div>
 
                 <div class="mb-5 p-5 rounded-xl bg-slate-900/50 border border-slate-800">
                     <div class="flex justify-between items-center mb-2 font-mono text-sm">
-                        <span class="text-slate-400 uppercase">Protection & Shielding</span>
+                        <span class="text-slate-400 uppercase">Protection & Shielding <span title="Guards against radiation, thermal extremes, and impacts — weighed against live space weather. See Academy II, Module 6." class="text-cyan-500 cursor-help">ⓘ</span></span>
                         <span id="materialsValue" class="text-slate-200 font-bold">30%</span>
                     </div>
                     <input type="range" id="materialsSlider" min="10" max="70" step="5" value="30" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <p class="text-[10px] text-slate-500 font-mono mt-2">Check the live NASA weather feed below — active solar activity raises the bar for adequate shielding.</p>
                 </div>
 
                 <div class="mb-6 p-5 rounded-xl bg-slate-900/50 border border-slate-800">
                     <div class="flex justify-between items-center mb-2 font-mono text-sm">
-                        <span class="text-slate-400 uppercase">Science Payloads</span>
+                        <span class="text-slate-400 uppercase">Science Payloads <span title="The mission's purpose — but every gram here is a gram unavailable to propulsion or protection. See Academy II, Module 3." class="text-cyan-500 cursor-help">ⓘ</span></span>
                         <span id="payloadValue" class="text-slate-200 font-bold">30%</span>
                     </div>
                     <input type="range" id="payloadSlider" min="10" max="70" step="5" value="30" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <p class="text-[10px] text-slate-500 font-mono mt-2">Ask "what's the minimum payload capability that still achieves the objective?" rather than maximizing this.</p>
                 </div>
 
                 <button id="runSimBtn" onclick="ExecuteSimulation()" class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold font-mono text-base tracking-wider uppercase transition shadow-lg flex items-center justify-center gap-2">
@@ -381,7 +395,7 @@
 
                 <div class="grid grid-cols-3 gap-4 mb-8">
                     <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
-                        <p class="text-sm font-mono text-slate-400 mb-2">Readiness Score</p>
+                        <p class="text-sm font-mono text-slate-400 mb-2">Readiness Score <span title="Synthesizes destination demands, protection adequacy, propulsion sufficiency, and overall balance — see Academy II, Module 10." class="text-cyan-500 cursor-help">ⓘ</span></p>
                         <p id="readinessScore" class="font-mono text-4xl font-extrabold text-cyan-400">--%</p>
                     </div>
                     <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
@@ -496,15 +510,26 @@
         let currentUser = null;
         let isGuest = false;
         let authMode = 'signin';
-        let academyModules = [];
+        let academyModulesByAcademy = { 1: [], 2: [] };
+        let currentAcademyId = 1;
         let activeModuleIndex = 0;
+
+        // AI Tutor conversation memory - stores the ongoing exchange so
+        // follow-up messages like "yes", "explain that", "why?" retain context.
+        const MAX_CLIENT_HISTORY_MESSAGES = 40; // ~20 exchanges kept client-side
+        let chatHistory = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
             InitHeroAnimation();
             await FetchClientConfig();
-            await FetchAcademyContent();
+            await Promise.all([FetchAcademyContent(1), FetchAcademyContent(2)]);
+            const initialSubtitle = document.getElementById('academyHeaderSubtitle');
+            if (academyModulesByAcademy[1]._subtitle) initialSubtitle.innerText = academyModulesByAcademy[1]._subtitle;
+            RenderModuleStepper();
+            RenderActiveModule();
             FetchSpaceWeather();
             SetupSliderListeners();
+            SetupDestinationHint();
         });
 
         // Hero Animated Background Generator
@@ -621,23 +646,49 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        async function FetchAcademyContent() {
+        async function FetchAcademyContent(academyId) {
             try {
-                const res = await fetch('/api/academy');
+                const res = await fetch(`/api/academy?academy=${academyId}`);
                 const data = await res.json();
                 if (data.modules) {
-                    academyModules = data.modules;
-                    RenderModuleStepper();
-                    RenderActiveModule();
+                    academyModulesByAcademy[academyId] = data.modules;
+                    academyModulesByAcademy[academyId]._title = data.academy_title;
+                    academyModulesByAcademy[academyId]._subtitle = data.academy_subtitle;
                 }
             } catch (err) {
                 console.error("Academy loading error", err);
             }
         }
 
+        function SwitchAcademy(academyId) {
+            currentAcademyId = academyId;
+            activeModuleIndex = 0;
+
+            const btn1 = document.getElementById('academyTabBtn1');
+            const btn2 = document.getElementById('academyTabBtn2');
+            const activeClasses = "bg-cyan-500/20 border-cyan-400 text-cyan-300";
+            const inactiveClasses = "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700";
+            btn1.className = `px-5 py-3 rounded-xl border font-mono text-sm font-bold tracking-wide transition ${academyId === 1 ? activeClasses : inactiveClasses}`;
+            btn2.className = `px-5 py-3 rounded-xl border font-mono text-sm font-bold tracking-wide transition ${academyId === 2 ? activeClasses : inactiveClasses}`;
+
+            const modules = academyModulesByAcademy[academyId] || [];
+            const titleEl = document.getElementById('academyHeaderTitle');
+            const subtitleEl = document.getElementById('academyHeaderSubtitle');
+            if (academyId === 1) {
+                titleEl.innerHTML = 'Interactive <span class="text-cyan-400">Rocket Academy I</span>';
+            } else {
+                titleEl.innerHTML = 'Interactive <span class="text-cyan-400">Rocket Academy II</span>';
+            }
+            subtitleEl.innerText = modules._subtitle || 'Undergraduate Aerospace Engineering Coursework';
+
+            RenderModuleStepper();
+            RenderActiveModule();
+        }
+
         function RenderModuleStepper() {
             const stepper = document.getElementById('academyPhaseStepper');
-            stepper.innerHTML = academyModules.map((m, idx) => `
+            const modules = academyModulesByAcademy[currentAcademyId] || [];
+            stepper.innerHTML = modules.map((m, idx) => `
                 <button onclick="SelectModule(${idx + 1})" class="p-3 rounded-xl border text-left transition font-mono ${activeModuleIndex === idx ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-lg' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'}">
                     <p class="text-xs tracking-widest text-slate-400 uppercase">${m.badge}</p>
                     <p class="text-sm font-bold truncate mt-0.5">${m.title.split(':')[1] || m.title}</p>
@@ -653,9 +704,10 @@
 
         function RenderActiveModule() {
             const container = document.getElementById('academyPhaseContent');
-            if (!academyModules.length) return;
+            const modules = academyModulesByAcademy[currentAcademyId] || [];
+            if (!modules.length) return;
             
-            const mod = academyModules[activeModuleIndex];
+            const mod = modules[activeModuleIndex];
             
             container.innerHTML = `
                 <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-fade-in">
@@ -666,7 +718,7 @@
                             <p class="text-sm text-slate-400 font-mono mt-1">${mod.subtitle}</p>
                         </div>
                         <div class="text-right font-mono text-sm text-slate-400">
-                            Module ${mod.id} of 6
+                            Module ${mod.id} of ${modules.length}
                         </div>
                     </div>
 
@@ -678,12 +730,35 @@
                         ${mod.lesson}
                     </div>
 
+                    ${mod.misconception ? `
+                    <div class="p-5 rounded-xl bg-amber-950/20 border border-amber-500/30 text-sm text-amber-100 font-sans flex items-start gap-4">
+                        <span class="text-amber-400 font-bold text-xl">⚠️</span>
+                        <div>
+                            <strong class="text-amber-300 font-mono uppercase text-xs tracking-wider">Common Misconception</strong>
+                            <p class="mt-1">${mod.misconception}</p>
+                        </div>
+                    </div>` : ''}
+
+                    ${mod.application ? `
+                    <div class="p-5 rounded-xl bg-indigo-950/20 border border-indigo-500/30 text-sm text-indigo-100 font-sans flex items-start gap-4">
+                        <span class="text-indigo-400 font-bold text-xl">🛠️</span>
+                        <div>
+                            <strong class="text-indigo-300 font-mono uppercase text-xs tracking-wider">Practical Application</strong>
+                            <p class="mt-1">${mod.application}</p>
+                        </div>
+                    </div>` : ''}
+
                     <div class="p-5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-400 font-mono flex items-start gap-4">
                         <span class="text-cyan-400 font-bold text-xl">📌</span>
                         <div>
                             <strong class="text-slate-200">Engineering Fact:</strong> ${mod.fact}
                         </div>
                     </div>
+
+                    ${mod.summary ? `
+                    <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 text-sm text-slate-300 font-sans italic">
+                        <strong class="text-slate-200 font-mono not-italic uppercase text-xs tracking-wider">Module Summary:</strong> ${mod.summary}
+                    </div>` : ''}
 
                     <div class="pt-6 border-t border-slate-800 space-y-5">
                         <h4 class="font-display text-lg font-bold text-white flex items-center gap-2">
@@ -711,7 +786,8 @@
         }
 
         function SubmitQuizAnswer(modId, qIdx, selectedOpt, correctOpt) {
-            const mod = academyModules.find(m => m.id === modId);
+            const modules = academyModulesByAcademy[currentAcademyId] || [];
+            const mod = modules.find(m => m.id === modId);
             if (!mod) return;
             const q = mod.questions[qIdx];
 
@@ -736,6 +812,23 @@
                     <p>${q.reasoning}</p>
                 `;
             }
+        }
+
+        const DESTINATION_HINTS = {
+            "Mars Orbit": "Months of interplanetary transit — moderate Delta-v, meaningful radiation exposure over the journey. (Academy II, Module 2)",
+            "Lunar Base Alpha": "Only a few days' transit and comparatively low Delta-v, but extreme day-night thermal swings and abrasive regolith dust. (Academy II, Module 2)",
+            "Europa Probe": "High Delta-v demand plus intense radiation from Jupiter's magnetic field — this destination generally warrants above-average protection budget. (Academy II, Module 2)",
+            "Asteroid Belt": "Irregular, weakly-gravitating bodies make precision navigation and micrometeorite protection especially important. (Academy II, Module 2)"
+        };
+
+        function SetupDestinationHint() {
+            const destSelect = document.getElementById('destSelect');
+            const hintEl = document.getElementById('destHint');
+            const updateHint = () => {
+                hintEl.innerText = DESTINATION_HINTS[destSelect.value] || '';
+            };
+            destSelect.addEventListener('change', updateHint);
+            updateHint();
         }
 
         function SetupSliderListeners() {
@@ -840,14 +933,31 @@
             input.value = '';
             log.scrollTop = log.scrollHeight;
 
+            // Determine which module/academy context the student is currently viewing,
+            // so short follow-ups like "explain that" resolve against the right topic.
+            const activeModules = academyModulesByAcademy[currentAcademyId] || [];
+            const activeMod = activeModules[activeModuleIndex];
+            const contextModule = activeMod ? activeMod.title : "Undergraduate Aerospace Course";
+
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, context_module: "Undergraduate Aerospace Course" })
+                    body: JSON.stringify({
+                        message: text,
+                        context_module: contextModule,
+                        history: chatHistory
+                    })
                 });
                 const data = await res.json();
-                
+
+                // Persist this exchange in memory so the next message keeps the thread going.
+                chatHistory.push({ role: 'user', content: text });
+                chatHistory.push({ role: 'assistant', content: data.response || '' });
+                if (chatHistory.length > MAX_CLIENT_HISTORY_MESSAGES) {
+                    chatHistory = chatHistory.slice(-MAX_CLIENT_HISTORY_MESSAGES);
+                }
+
                 log.innerHTML += `
                     <div class="p-4 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-slate-200 mr-6">
                         ${data.response}
